@@ -1,4 +1,5 @@
-import { IsEmail, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsEnum, IsStrongPassword } from 'class-validator';
+import { Roles } from 'src/enums/roles.enum';
 
 export class UpdateUserDto {
     @IsEmail()
@@ -6,4 +7,7 @@ export class UpdateUserDto {
 
     @IsStrongPassword()
     password: string;
+
+    @IsEnum(Roles)
+    role?: Roles;
 }

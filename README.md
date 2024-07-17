@@ -46,3 +46,12 @@ nest build
 ```
 
 </details>
+
+<details>
+<summary>Fix ESLint writing</summary>
+
+```sh
+npx eslint --fix .
+```
+
+</details>

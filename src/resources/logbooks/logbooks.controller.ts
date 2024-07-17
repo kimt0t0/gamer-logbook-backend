@@ -1,5 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { UUID } from 'crypto';
+import { Role } from 'src/decorators/roles.decorators';
+import { Roles } from 'src/enums/roles.enum';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 import { CreateLogbookDto } from './dto/create-logbook.dto';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
 import { LogbooksService } from './logbooks.service';
@@ -8,16 +12,20 @@ import { LogbooksService } from './logbooks.service';
 export class LogbooksController {
     constructor(private readonly logbooksService: LogbooksService) {}
 
+    @UseGuards(AuthGuard)
     @Post()
     create(@Body() createLogbookDto: CreateLogbookDto) {
         return this.logbooksService.create(createLogbookDto);
     }
 
+    @UseGuards(AuthGuard)
     @Get()
     findAll() {
         return this.logbooksService.findAll();
     }
 
+    @UseGuards(AuthGuard, RolesGuard)
+    @Role(Roles.ADMIN)
     @Get(':id')
     findOne(@Param('id') id: UUID) {
         return this.logbooksService.findOne(id);

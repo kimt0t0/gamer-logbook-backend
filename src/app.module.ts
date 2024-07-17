@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './resources/auth/auth.module';
 import { GamesModule } from './resources/games/games.module';
 import { LogbooksModule } from './resources/logbooks/logbooks.module';
 import { UsersModule } from './resources/users/users.module';
@@ -26,6 +27,7 @@ import { UsersModule } from './resources/users/users.module';
             synchronize: true,
         }),
         // resources
+        AuthModule,
         UsersModule,
         LogbooksModule,
         GamesModule,

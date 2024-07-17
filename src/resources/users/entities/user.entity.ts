@@ -1,4 +1,5 @@
 import { UUID } from 'crypto';
+import { Roles } from 'src/enums/roles.enum';
 import { Game } from 'src/resources/games/entities/game.entity';
 import { Logbook } from 'src/resources/logbooks/entities/logbook.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
@@ -15,7 +16,10 @@ export class User {
     email: string;
 
     @Column()
-    password: string;
+    hash: string;
+
+    @Column({ default: Roles.CLASSIC })
+    role: Roles;
 
     @OneToMany(() => Logbook, (logbook) => logbook.owner)
     logbooks: Logbook[];
