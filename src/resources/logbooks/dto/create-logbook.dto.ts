@@ -1,4 +1,5 @@
-import { IsJSON, IsString } from 'class-validator';
+import { IsJSON, IsString, IsUUID } from 'class-validator';
+import { UUID } from 'crypto';
 
 export class CreateLogbookDto {
     @IsString()
@@ -6,4 +7,13 @@ export class CreateLogbookDto {
 
     @IsJSON()
     contents: any;
+
+    @IsUUID()
+    ownerId: UUID;
+
+    @IsUUID()
+    gameId?: UUID;
+
+    @IsString()
+    gameTitle?: string;
 }

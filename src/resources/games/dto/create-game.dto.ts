@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { IsString } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
+import { UUID } from 'crypto';
 
 export class CreateGameDto {
     @IsString()
@@ -7,4 +8,7 @@ export class CreateGameDto {
 
     @IsString()
     imageUrl: string;
+
+    @IsUUID()
+    userId: UUID;
 }
