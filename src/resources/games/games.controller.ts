@@ -17,7 +17,7 @@ export class GamesController {
     @UseGuards(AuthGuard)
     @Post()
     @UseInterceptors(FileInterceptor('image'))
-    create(@Body() createGameDto: CreateGameDto, @UploadedFile file: Express.Multer.File) {
+    create(@Body() createGameDto: CreateGameDto, @UploadedFile() file: Express.Multer.File) {
         const imageUrl = file ? `/uploads/${file.filename}` : null;
         return this.gamesService.create(createGameDto, imageUrl);
     }
