@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,11 +12,13 @@ import { UsersModule } from './resources/users/users.module';
 
 @Module({
     imports: [
+        // Base config
         ConfigModule.forRoot({
             envFilePath: '.env.dev',
             isGlobal: true,
             cache: true,
         }),
+        // Orm
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: process.env.DATABASE_HOST,
@@ -26,6 +29,13 @@ import { UsersModule } from './resources/users/users.module';
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             synchronize: true,
         }),
+        // security
+        ThrottlerModule.forRoot([
+            {
+                ttl: 60000,
+                limit: 10,
+            },
+        ]),
         // resources
         AuthModule,
         UsersModule,
