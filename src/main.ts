@@ -1,10 +1,15 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+    app.useStaticAssets(join(__dirname, '..', 'uploads'));
+
     app.use(
         helmet({
             contentSecurityPolicy: {
@@ -22,12 +27,15 @@ async function bootstrap() {
             referrerPolicy: { policy: 'no-referrer' }, // Does not include referrer in uploading requests
         }),
     );
+
     app.enableCors({
         origin: process.env.FRONTEND_PATH,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     });
+
     app.useGlobalPipes(new ValidationPipe());
+
     await app.listen(3000);
 }
 bootstrap();

@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UUID } from 'crypto';
 import { Role } from 'src/decorators/roles.decorators';
 import { Roles } from 'src/enums/roles.enum';
@@ -15,8 +16,10 @@ export class GamesController {
 
     @UseGuards(AuthGuard)
     @Post()
-    create(@Body() createGameDto: CreateGameDto) {
-        return this.gamesService.create(createGameDto);
+    @UseInterceptors(FileInterceptor('image'))
+    create(@Body() createGameDto: CreateGameDto, @UploadedFile file: Express.Multer.File) {
+        const imageUrl = file ? `/uploads/${file.filename}` : null;
+        return this.gamesService.create(createGameDto, imageUrl);
     }
 
     @UseGuards(AuthGuard)
@@ -39,8 +42,10 @@ export class GamesController {
 
     @UseGuards(AuthGuard)
     @Patch(':id')
-    update(@Param('id') id: UUID, @Body() updateGameDto: UpdateGameDto) {
-        return this.gamesService.update(id, updateGameDto);
+    @UseInterceptors(FileInterceptor('image'))
+    update(@Param('id') id: UUID, @Body() updateGameDto: UpdateGameDto, @UploadedFile() file: Express.Multer.File) {
+        const imageUrl = file ? `/uploads/${file.filename}` : null;
+        return this.gamesService.update(id, updateGameDto, imageUrl);
     }
 
     @UseGuards(AuthGuard, RolesGuard)
