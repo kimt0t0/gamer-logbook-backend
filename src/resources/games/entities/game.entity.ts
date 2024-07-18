@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
-import { UUID } from 'crypto';
+import { randomUUID, UUID } from 'crypto';
 import { Logbook } from 'src/resources/logbooks/entities/logbook.entity';
 import { User } from 'src/resources/users/entities/user.entity';
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('games')
 export class Game {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
     @Column()
@@ -20,4 +20,11 @@ export class Game {
 
     @OneToMany(() => Logbook, (logbook) => logbook.game)
     logbooks: Logbook[];
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.id) {
+            this.id = randomUUID();
+        }
+    }
 }

@@ -1,12 +1,12 @@
-import { UUID } from 'crypto';
+import { randomUUID, UUID } from 'crypto';
 import { Roles } from 'src/enums/roles.enum';
 import { Game } from 'src/resources/games/entities/game.entity';
 import { Logbook } from 'src/resources/logbooks/entities/logbook.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
     @Column()
@@ -26,4 +26,11 @@ export class User {
 
     @OneToMany(() => Game, (game) => game.owner)
     games: Game[];
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.id) {
+            this.id = randomUUID();
+        }
+    }
 }

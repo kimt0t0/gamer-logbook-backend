@@ -1,11 +1,11 @@
-import { UUID } from 'crypto';
+import { randomUUID, UUID } from 'crypto';
 import { Game } from 'src/resources/games/entities/game.entity';
 import { User } from 'src/resources/users/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('logbooks')
 export class Logbook {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
     @Column()
@@ -19,4 +19,11 @@ export class Logbook {
 
     @ManyToOne(() => Game, (game) => game.logbooks)
     game: Game;
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.id) {
+            this.id = randomUUID();
+        }
+    }
 }

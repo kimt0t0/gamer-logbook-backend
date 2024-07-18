@@ -28,16 +28,18 @@ export class UsersService {
         }
         const hash = await bcrypt.hash(password, 15);
         try {
-            return await this.usersRepository.create({
+            const user = await this.usersRepository.create({
                 username,
                 email,
                 hash,
                 role,
             });
+            return this.usersRepository.save(user);
         } catch (e) {
             throw new BadRequestException(`User creation failed with code ${e.code}: ${e.message}.`);
         }
     }
+
     async findAll(): Promise<User[]> {
         return await this.usersRepository.find();
     }

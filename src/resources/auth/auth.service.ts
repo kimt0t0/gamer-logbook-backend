@@ -21,9 +21,9 @@ export class AuthService {
         if (!password) throw new NotAcceptableException(`User must enter a password to login.`);
 
         try {
-            const user: { id: UUID; username: string; role: string; hash: string } = await this.userRepository.findOne({
+            const user: { id: UUID; username: string; email: string; role: string; hash: string } = await this.userRepository.findOne({
                 where: { email },
-                select: ['id', 'username', 'role', 'hash'],
+                select: ['id', 'username', 'email', 'role', 'hash'],
             });
             if (!user) {
                 throw new NotFoundException(`No user was found with provided email: ${email}.`);
