@@ -106,26 +106,50 @@ export class UsersService {
 
     async update(id: UUID, updateUserDto: UpdateUserDto): Promise<User> {
         try {
-            // Check user
+            // eslint-disable-next-line prefer-const
+            let { email, newEmail, password, newPassword, role } = updateUserDto;
+            let hash: string | null;
+            // Check user is account owner or admin
             const userAuthToken = this.request.rawHeaders
                 .find((header) => header.startsWith('Bearer'))
                 .replace('Bearer', '')
                 .replace(' ', '');
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
-            const userChecker = await this.usersRepository.findOne({
+            const userAllowedChecker = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
                 select: ['id', 'role'],
             });
-            // Handle exceptions and forbidden actions
-            if (!userChecker) {
+            // Handle exceptions and forbidden actions due to not allowed account
+            if (!userAllowedChecker) {
                 throw new NotAcceptableException(
                     `You cannot update a user's data if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
                 );
-            } else if (userChecker.id != id && userChecker.role != Roles.ADMIN) {
+            } else if (userAllowedChecker.id != id && userAllowedChecker.role != Roles.ADMIN) {
                 throw new NotAcceptableException(`You cannot update a user's data if you aren't logged in as this user, except if you are an admin.`);
             }
+            // Check credentials
+            const userCredentialsChecker = await this.usersRepository.findOne({
+                where: { id: decodedToken.id },
+                select: ['email', 'hash'],
+            });
+            if (userCredentialsChecker.email != email) {
+                throw new NotAcceptableException(`The given email ${email} does not correspond to user email in the database.`);
+            }
+            const isPasswordmatch = await bcrypt.compare(password, userCredentialsChecker.hash);
+            if (!isPasswordmatch) {
+                throw new NotAcceptableException(`The given password does not correspond to user password in the database.`);
+            }
             // Update user
-            await this.usersRepository.update(id, updateUserDto);
+            if (newEmail && newEmail.length >= 7) email = newEmail;
+            if (newPassword && newPassword.length >= 8) hash = await bcrypt.hash(newPassword, 15);
+            if (role) {
+                if (userAllowedChecker.role != Roles.ADMIN) role = Roles.CLASSIC;
+            }
+            await this.usersRepository.update(id, {
+                email,
+                hash,
+                role,
+            });
             return this.findOneById(id);
         } catch (e) {
             throw new Error(`Could not find user with id ${id} due to error with code ${e.code}: ${e.message}.`);

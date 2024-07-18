@@ -1,9 +1,12 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateGameDto {
     @IsString()
-    title: string;
+    @Length(3, 50)
+    @IsOptional()
+    title?: string;
 
     @IsString()
-    imageUrl: string;
+    @IsOptional()
+    imageUrl?: string;
 }

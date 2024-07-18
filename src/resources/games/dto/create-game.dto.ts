@@ -1,13 +1,15 @@
 /* eslint-disable prettier/prettier */
-import { IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { UUID } from 'crypto';
 
 export class CreateGameDto {
     @IsString()
+    @Length(3, 50)
     title: string;
 
     @IsString()
-    imageUrl: string;
+    @IsOptional()
+    imageUrl?: string;
 
     @IsUUID()
     userId: UUID;

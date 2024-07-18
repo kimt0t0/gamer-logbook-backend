@@ -1,19 +1,23 @@
-import { IsJSON, IsString, IsUUID } from 'class-validator';
+import { IsJSON, IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { UUID } from 'crypto';
 
 export class UpdateLogbookDto {
     @IsString()
+    @Length(3, 50)
     title: string;
 
     @IsJSON()
-    contents: any;
+    @IsOptional()
+    contents?: any;
 
     @IsUUID()
     userId: UUID;
 
     @IsUUID()
-    gameId: UUID;
+    @IsOptional()
+    gameId?: UUID;
 
     @IsString()
-    gameTitle: string;
+    @IsOptional()
+    gameTitle?: string;
 }
