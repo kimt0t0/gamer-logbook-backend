@@ -21,10 +21,10 @@ export class User {
     @Column({ default: Roles.CLASSIC })
     role: Roles;
 
-    @OneToMany(() => Logbook, (logbook) => logbook.owner)
+    @OneToMany(() => Logbook, (logbook) => logbook.owner, { eager: false, onDelete: 'CASCADE' })
     logbooks: Logbook[];
 
-    @OneToMany(() => Game, (game) => game.owner)
+    @OneToMany(() => Game, (game) => game.owner, { eager: false })
     games: Game[];
 
     @BeforeInsert()

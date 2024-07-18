@@ -18,7 +18,7 @@ export class GamesController {
     @Post()
     @UseInterceptors(FileInterceptor('image'))
     create(@Body() createGameDto: CreateGameDto, @UploadedFile() file: Express.Multer.File) {
-        const imageUrl = file ? `/uploads/${file.filename}` : null;
+        const imageUrl = file ? `/public/uploads/${file.filename}` : null;
         return this.gamesService.create(createGameDto, imageUrl);
     }
 
@@ -44,7 +44,7 @@ export class GamesController {
     @Patch(':id')
     @UseInterceptors(FileInterceptor('image'))
     update(@Param('id') id: UUID, @Body() updateGameDto: UpdateGameDto, @UploadedFile() file: Express.Multer.File) {
-        const imageUrl = file ? `/uploads/${file.filename}` : null;
+        const imageUrl = file ? `/public/uploads/${file.filename}` : null;
         return this.gamesService.update(id, updateGameDto, imageUrl);
     }
 

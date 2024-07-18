@@ -42,7 +42,7 @@ export class GamesService {
     }
 
     async findAll(): Promise<Game[]> {
-        return await this.gamesRepository.find({ relations: ['owner', 'logbooks'] });
+        return await this.gamesRepository.find();
     }
 
     async findOneById(id: UUID): Promise<Game> {

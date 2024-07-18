@@ -15,10 +15,10 @@ export class Game {
     @Column({ nullable: true, unique: true })
     imageUrl: string;
 
-    @ManyToOne(() => User, (user) => user.games)
+    @ManyToOne(() => User, (user) => user.games, { eager: false })
     owner: User;
 
-    @OneToMany(() => Logbook, (logbook) => logbook.game)
+    @OneToMany(() => Logbook, (logbook) => logbook.game, { eager: false })
     logbooks: Logbook[];
 
     @BeforeInsert()

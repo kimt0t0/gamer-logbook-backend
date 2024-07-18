@@ -14,7 +14,7 @@ export class Logbook {
     @Column({ type: 'jsonb', nullable: true })
     contents: any;
 
-    @ManyToOne(() => User, (user) => user.logbooks)
+    @ManyToOne(() => User, (user) => user.logbooks, { eager: false })
     owner: User;
 
     @ManyToOne(() => Game, (game) => game.logbooks)

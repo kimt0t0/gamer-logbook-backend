@@ -80,7 +80,7 @@ export class LogbooksService {
             // Read logbook
             const logbook = await this.logbooksRepository.findOne({
                 where: { id },
-                relations: ['owner, game'],
+                relations: ['owner', 'game'],
             });
             if (!logbook) {
                 throw new NotFoundException(`Logbook with id ${id} was not found.`);

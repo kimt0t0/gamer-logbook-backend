@@ -14,7 +14,7 @@ import { GamesService } from './games.service';
         UsersModule,
         MulterModule.register({
             storage: diskStorage({
-                destination: './uploads',
+                destination: './public/uploads',
                 filename: (req, file, cb) => {
                     const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                     const ext = extname(file.originalname);

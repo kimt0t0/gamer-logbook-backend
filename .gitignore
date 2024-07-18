@@ -3,6 +3,9 @@
 .env.*
 !.env.structure
 
+# images uploaded by users
+/public/uploads
+
 # vscode settings
 .vscode
 
