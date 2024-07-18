@@ -1,7 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
+import { Roles } from 'src/enums/roles.enum';
+import { DecodedToken } from 'src/interfaces/DecodedToken.interface';
+import { decodeToken } from 'src/utils/token.utils';
 import { Repository } from 'typeorm';
 import { Game } from '../games/entities/game.entity';
 import { User } from '../users/entities/user.entity';
@@ -12,6 +16,8 @@ import { Logbook } from './entities/logbook.entity';
 @Injectable()
 export class LogbooksService {
     constructor(
+        @Inject(REQUEST)
+        private request,
         @InjectRepository(Logbook)
         private logbooksRepository: Repository<Logbook>,
         @InjectRepository(User)
@@ -47,24 +53,77 @@ export class LogbooksService {
     }
 
     async findOne(id: UUID): Promise<Logbook> {
-        const logbook = await this.logbooksRepository.findOne({
-            where: { id },
-            relations: ['owner, game'],
-        });
-        if (!logbook) {
-            throw new NotFoundException(`Logbook with id ${id} was not found.`);
+        try {
+            // Check user
+            const userAuthToken = this.request.rawHeaders
+                .find((header) => header.startsWith('Bearer'))
+                .replace('Bearer', '')
+                .replace(' ', '');
+            const decodedToken: DecodedToken = decodeToken(userAuthToken);
+            const user = await this.usersRepository.findOne({
+                where: { id: decodedToken.id },
+                select: ['id', 'role'],
+            });
+            const logbookChecker = await this.logbooksRepository.findOne({
+                where: { id: id },
+                relations: ['owner'],
+                select: ['owner'],
+            });
+            // Handle exceptions and forbidden actions
+            if (!user) {
+                throw new NotAcceptableException(
+                    `You cannot read a logbook if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
+                );
+            } else if (user.id != logbookChecker.owner.id && user.role != Roles.ADMIN) {
+                throw new NotAcceptableException(`You cannot read a logbook if you didn't add it to the application except if you are an admin.`);
+            }
+            // Read logbook
+            const logbook = await this.logbooksRepository.findOne({
+                where: { id },
+                relations: ['owner, game'],
+            });
+            if (!logbook) {
+                throw new NotFoundException(`Logbook with id ${id} was not found.`);
+            }
+            return logbook;
+        } catch (e) {
+            throw new Error(`Could not read logbook with id ${id} due to error with code ${e.code}: ${e.message}.`);
         }
-        return logbook;
     }
 
     async update(id: UUID, updateLogbookDto: UpdateLogbookDto): Promise<Logbook> {
         const { title, contents, gameId, gameTitle } = updateLogbookDto;
+        // Check user
+        const userAuthToken = this.request.rawHeaders
+            .find((header) => header.startsWith('Bearer'))
+            .replace('Bearer', '')
+            .replace(' ', '');
+        const decodedToken: DecodedToken = decodeToken(userAuthToken);
+        const user = await this.usersRepository.findOne({
+            where: { id: decodedToken.id },
+            select: ['id', 'role'],
+        });
+        const logbookChecker = await this.logbooksRepository.findOne({
+            where: { id: id },
+            relations: ['owner'],
+            select: ['owner'],
+        });
+        // Handle exceptions and forbidden actions
+        if (!user) {
+            throw new NotAcceptableException(
+                `You cannot edit a logbook if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
+            );
+        } else if (user.id != logbookChecker.owner.id && user.role != Roles.ADMIN) {
+            throw new NotAcceptableException(`You cannot edit a logbook if you didn't add it to the application except if you are an admin.`);
+        }
+        // Check game
         let game: Game | null = null;
         if (gameId) game = await this.gamesRepository.findOne({ where: { id: gameId } });
         if (gameTitle) game = await this.gamesRepository.findOne({ where: { title: gameTitle } });
         if ((gameId || gameTitle) && !game) {
             throw new NotFoundException(`Game with id ${gameId} was not found`);
         }
+        // Edit logbook
         await this.logbooksRepository.update(id, {
             title,
             contents,
@@ -75,6 +134,30 @@ export class LogbooksService {
 
     async remove(id: UUID): Promise<UUID> {
         try {
+            // Check user
+            const userAuthToken = this.request.rawHeaders
+                .find((header) => header.startsWith('Bearer'))
+                .replace('Bearer', '')
+                .replace(' ', '');
+            const decodedToken: DecodedToken = decodeToken(userAuthToken);
+            const user = await this.usersRepository.findOne({
+                where: { id: decodedToken.id },
+                select: ['id', 'role'],
+            });
+            const logbookChecker = await this.logbooksRepository.findOne({
+                where: { id: id },
+                relations: ['owner'],
+                select: ['owner'],
+            });
+            // Handle exceptions and forbidden actions
+            if (!user) {
+                throw new NotAcceptableException(
+                    `You cannot delete a logbook if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
+                );
+            } else if (user.id != logbookChecker.owner.id && user.role != Roles.ADMIN) {
+                throw new NotAcceptableException(`You cannot delete a logbook if you didn't add it to the application except if you are an admin.`);
+            }
+            // Delete logbook
             await this.logbooksRepository.delete(id);
             return id;
         } catch (e) {

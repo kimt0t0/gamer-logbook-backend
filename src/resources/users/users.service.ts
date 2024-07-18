@@ -1,6 +1,6 @@
-import * as bcrypt from '@bcrypt';
 import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { UUID } from 'crypto';
 import { Roles } from 'src/enums/roles.enum';
 import { Repository } from 'typeorm';

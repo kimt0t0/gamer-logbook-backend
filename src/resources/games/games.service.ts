@@ -1,7 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
+import { Roles } from 'src/enums/roles.enum';
+import { DecodedToken } from 'src/interfaces/DecodedToken.interface';
+import { decodeToken } from 'src/utils/token.utils';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateGameDto } from './dto/create-game.dto';
@@ -11,6 +15,8 @@ import { Game } from './entities/game.entity';
 @Injectable()
 export class GamesService {
     constructor(
+        @Inject(REQUEST)
+        private request,
         @InjectRepository(Game)
         private gamesRepository: Repository<Game>,
         @InjectRepository(User)
@@ -60,16 +66,59 @@ export class GamesService {
     }
 
     async update(id: UUID, updateGameDto: UpdateGameDto): Promise<Game> {
-        await this.gamesRepository.update(id, updateGameDto);
-        return this.findOneById(id);
+        try {
+            // Check user
+            const userAuthToken = this.request.rawHeaders
+                .find((header) => header.startsWith('Bearer'))
+                .replace('Bearer', '')
+                .replace(' ', '');
+            const decodedToken: DecodedToken = decodeToken(userAuthToken);
+            const user = await this.usersRepository.findOne({
+                where: { id: decodedToken.id },
+                select: ['id', 'role'],
+            });
+            const game = await this.findOneById(id);
+            // Handle exceptions and forbidden actions
+            if (!user) {
+                throw new NotAcceptableException(
+                    `You cannot update a game if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
+                );
+            } else if (user.id != game.owner.id && user.role != Roles.ADMIN) {
+                throw new NotAcceptableException(`You cannot edit a game if you didn't add it to the application except if you are an admin.`);
+            }
+            // Update
+            await this.gamesRepository.update(id, updateGameDto);
+            return this.findOneById(id);
+        } catch (e) {
+            throw new Error(`Game with id ${id} could not be updated due to error with code ${e.code}: ${e.message}`);
+        }
     }
 
     async remove(id: UUID): Promise<UUID> {
         try {
+            // Check user
+            const userAuthToken = this.request.rawHeaders
+                .find((header) => header.startsWith('Bearer'))
+                .replace('Bearer', '')
+                .replace(' ', '');
+            const decodedToken: DecodedToken = decodeToken(userAuthToken);
+            const user = await this.usersRepository.findOne({
+                where: { id: decodedToken.id },
+                select: ['id', 'role'],
+            });
+            const game = await this.findOneById(id);
+            // Handle exceptions and forbidden actions
+            if (!user) {
+                throw new NotAcceptableException(
+                    `You cannot delete a game if you don't login with a user account. User with id ${decodedToken.id} could not be found in the database.`,
+                );
+            } else if (user.id != game.owner.id && user.role != Roles.ADMIN) {
+                throw new NotAcceptableException(`You cannot delete a game if you didn't add it to the application except if you are an admin.`);
+            }
             await this.gamesRepository.delete(id);
             return id;
         } catch (e) {
-            throw new NotFoundException(`Game with id ${id} could not be deleted: ${e.message}`);
+            throw new Error(`Game with id ${id} could not be deleted due to error with code ${e.code}: ${e.message}`);
         }
     }
 }

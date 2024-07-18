@@ -18,7 +18,8 @@ export class LogbooksController {
         return this.logbooksService.create(createLogbookDto);
     }
 
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Role(Roles.ADMIN)
     @Get()
     findAll() {
         return this.logbooksService.findAll();
@@ -31,11 +32,13 @@ export class LogbooksController {
         return this.logbooksService.findOne(id);
     }
 
+    @UseGuards(AuthGuard)
     @Patch(':id')
     update(@Param('id') id: UUID, @Body() updateLogbookDto: UpdateLogbookDto) {
         return this.logbooksService.update(id, updateLogbookDto);
     }
 
+    @UseGuards(AuthGuard)
     @Delete(':id')
     remove(@Param('id') id: UUID) {
         return this.logbooksService.remove(id);
