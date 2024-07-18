@@ -9,10 +9,10 @@ export class Game {
     @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
-    @Column()
+    @Column({ unique: true })
     title: string;
 
-    @Column()
+    @Column({ nullable: true, unique: true })
     imageUrl: string;
 
     @ManyToOne(() => User, (user) => user.games)

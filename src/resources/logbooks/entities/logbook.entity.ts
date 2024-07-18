@@ -11,7 +11,7 @@ export class Logbook {
     @Column()
     title: string;
 
-    @Column('jsonb')
+    @Column({ type: 'jsonb', nullable: true })
     contents: any;
 
     @ManyToOne(() => User, (user) => user.logbooks)
