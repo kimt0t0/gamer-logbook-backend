@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { UUID } from 'crypto';
 import { Roles } from 'src/enums/roles.enum';
 import { DecodedToken } from 'src/interfaces/DecodedToken.interface';
-import { decodeToken } from 'src/utils/token.utils';
+import { decodeToken, isolateToken } from 'src/utils/token.utils';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
@@ -49,10 +49,7 @@ export class UsersService {
     async findOneById(id: UUID): Promise<User> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const userChecker = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -80,10 +77,7 @@ export class UsersService {
     async findOneByUsername(username: string): Promise<User> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const userChecker = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -114,10 +108,7 @@ export class UsersService {
             let { email, newEmail, password, newPassword, role } = updateUserDto;
             let hash: string | null;
             // Check user is account owner or admin
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const userAllowedChecker = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -168,10 +159,7 @@ export class UsersService {
         if (!password) throw new NotAcceptableException(`User must enter their password to delete their account.`);
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const userChecker = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },

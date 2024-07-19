@@ -3,11 +3,10 @@ import { Inject, Injectable, NotAcceptableException, NotFoundException } from '@
 import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
 import { Roles } from 'src/enums/roles.enum';
 import { DecodedToken } from 'src/interfaces/DecodedToken.interface';
-import { decodeToken } from 'src/utils/token.utils';
+import { deleteFile } from 'src/utils/file.utils';
+import { decodeToken, isolateToken } from 'src/utils/token.utils';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateGameDto } from './dto/create-game.dto';
@@ -26,12 +25,14 @@ export class GamesService {
     ) {}
 
     async create(createGameDto: CreateGameDto, imageUrl: string): Promise<Game> {
-        const { title, userId } = createGameDto;
+        const { title } = createGameDto;
+        const userAuthToken = isolateToken(this.request.rawHeaders);
+        const userId = decodeToken(userAuthToken).id;
         const owner = await this.usersRepository.findOne({
             where: { id: userId },
         });
         if (!owner) {
-            throw new NotFoundException(`User with id ${createGameDto.userId} was not found.`);
+            throw new NotFoundException(`User with id ${userId} was not found.`);
         }
         const game = this.gamesRepository.create({
             title,
@@ -70,10 +71,7 @@ export class GamesService {
     async update(id: UUID, updateGameDto: UpdateGameDto, imageUrl: string): Promise<Game> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const user = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -94,24 +92,12 @@ export class GamesService {
             // Update game
             // (delete image)
             if (updateGameDto.deleteImage && game.imageUrl) {
-                const filePath = path.join(__dirname, '..', '..', '..', 'uploads', path.basename(game.imageUrl));
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        console.error(`Failed to delete image file: ${filePath}`, err);
-                    }
-                });
+                deleteFile(__dirname, game.imageUrl);
                 game.imageUrl = null;
             }
             // (replace image)
             if (imageUrl) {
-                if (game.imageUrl) {
-                    const oldFilePath = path.join(__dirname, '..', '..', '..', 'public/uploads', path.basename(game.imageUrl));
-                    fs.unlink(oldFilePath, (err) => {
-                        if (err) {
-                            console.error(`Failed to delete old image file: ${oldFilePath}`, err);
-                        }
-                    });
-                }
+                if (game.imageUrl) deleteFile(__dirname, game.imageUrl);
                 game.imageUrl = imageUrl;
             }
             // (game itself)
@@ -125,10 +111,7 @@ export class GamesService {
     async remove(id: UUID): Promise<UUID> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const user = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -144,14 +127,7 @@ export class GamesService {
                 throw new NotAcceptableException(`You cannot delete a game if you didn't add it to the application except if you are an admin.`);
             }
             // Remove image
-            if (game.imageUrl) {
-                const filePath = path.join(__dirname, '..', '..', '..', 'uploads', path.basename(game.imageUrl));
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        console.error(`Failed to delete image file: ${filePath}`, err);
-                    }
-                });
-            }
+            if (game.imageUrl) deleteFile(__dirname, game.imageUrl);
             // Remove game
             await this.gamesRepository.delete(id);
             return id;

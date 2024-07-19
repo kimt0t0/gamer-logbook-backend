@@ -11,9 +11,6 @@ export class CreateLogbookDto {
     contents?: any;
 
     @IsUUID()
-    ownerId: UUID;
-
-    @IsUUID()
     @IsOptional()
     gameId?: UUID;
 

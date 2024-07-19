@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
 import { Roles } from 'src/enums/roles.enum';
 import { DecodedToken } from 'src/interfaces/DecodedToken.interface';
-import { decodeToken } from 'src/utils/token.utils';
+import { decodeToken, isolateToken } from 'src/utils/token.utils';
 import { Repository } from 'typeorm';
 import { Game } from '../games/entities/game.entity';
 import { User } from '../users/entities/user.entity';
@@ -27,7 +27,9 @@ export class LogbooksService {
     ) {}
 
     async create(createLogbookDto: CreateLogbookDto): Promise<Logbook> {
-        const { title, contents, ownerId, gameId } = createLogbookDto;
+        const { title, contents, gameId } = createLogbookDto;
+        const userAuthToken = isolateToken(this.request.rawHeaders);
+        const ownerId = decodeToken(userAuthToken).id;
         const owner = await this.usersRepository.findOne({ where: { id: ownerId } });
         if (!owner) {
             throw new NotFoundException(`User with id ${ownerId} was not found.`);
@@ -55,10 +57,7 @@ export class LogbooksService {
     async findOne(id: UUID): Promise<Logbook> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const user = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
@@ -94,10 +93,7 @@ export class LogbooksService {
     async update(id: UUID, updateLogbookDto: UpdateLogbookDto): Promise<Logbook> {
         const { title, contents, gameId, gameTitle } = updateLogbookDto;
         // Check user
-        const userAuthToken = this.request.rawHeaders
-            .find((header) => header.startsWith('Bearer'))
-            .replace('Bearer', '')
-            .replace(' ', '');
+        const userAuthToken = isolateToken(this.request.rawHeaders);
         const decodedToken: DecodedToken = decodeToken(userAuthToken);
         const user = await this.usersRepository.findOne({
             where: { id: decodedToken.id },
@@ -135,10 +131,7 @@ export class LogbooksService {
     async remove(id: UUID): Promise<UUID> {
         try {
             // Check user
-            const userAuthToken = this.request.rawHeaders
-                .find((header) => header.startsWith('Bearer'))
-                .replace('Bearer', '')
-                .replace(' ', '');
+            const userAuthToken = isolateToken(this.request.rawHeaders);
             const decodedToken: DecodedToken = decodeToken(userAuthToken);
             const user = await this.usersRepository.findOne({
                 where: { id: decodedToken.id },
