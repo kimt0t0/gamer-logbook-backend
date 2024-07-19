@@ -105,7 +105,7 @@ export class GamesService {
             // (replace image)
             if (imageUrl) {
                 if (game.imageUrl) {
-                    const oldFilePath = path.join(__dirname, '..', '..', '..', 'uploads', path.basename(game.imageUrl));
+                    const oldFilePath = path.join(__dirname, '..', '..', '..', 'public/uploads', path.basename(game.imageUrl));
                     fs.unlink(oldFilePath, (err) => {
                         if (err) {
                             console.error(`Failed to delete old image file: ${oldFilePath}`, err);
