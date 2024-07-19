@@ -28,12 +28,14 @@ export class LogbooksService {
 
     async create(createLogbookDto: CreateLogbookDto): Promise<Logbook> {
         const { title, contents, gameId } = createLogbookDto;
+        // Check user
         const userAuthToken = isolateToken(this.request.rawHeaders);
         const ownerId = decodeToken(userAuthToken).id;
         const owner = await this.usersRepository.findOne({ where: { id: ownerId } });
         if (!owner) {
             throw new NotFoundException(`User with id ${ownerId} was not found.`);
         }
+        // Check game
         let game: Game;
         if (gameId && gameId != null) {
             game = await this.gamesRepository.findOne({ where: { id: gameId } });
@@ -41,17 +43,20 @@ export class LogbooksService {
                 throw new NotFoundException(`Game with id ${gameId} was not found.`);
             }
         }
+        // Create logbook
         const logbook = this.logbooksRepository.create({
             title,
             contents,
             owner,
             game,
         });
-        return await this.logbooksRepository.save(logbook);
+        // Return cleaned logbook data
+        const newLogbook = await this.logbooksRepository.save(logbook);
+        return await this.findOne(newLogbook.id);
     }
 
     async findAll(): Promise<Logbook[]> {
-        return await this.logbooksRepository.find({ relations: ['game'] });
+        return await this.logbooksRepository.find({ relations: ['owner', 'game'] });
     }
 
     async findOne(id: UUID): Promise<Logbook> {
@@ -77,10 +82,13 @@ export class LogbooksService {
                 throw new NotAcceptableException(`You cannot read a logbook if you didn't add it to the application except if you are an admin.`);
             }
             // Read logbook
-            const logbook = await this.logbooksRepository.findOne({
-                where: { id },
-                relations: ['game'],
-            });
+            const logbook = await this.logbooksRepository
+                .createQueryBuilder('logbook')
+                .leftJoinAndSelect('logbook.owner', 'user')
+                .select(['logbook', 'user.id', 'user.username', 'user.role'])
+                .leftJoinAndSelect('logbook.game', 'game')
+                .where('logbook.id = :id', { id })
+                .getOne();
             if (!logbook) {
                 throw new NotFoundException(`Logbook with id ${id} was not found.`);
             }
