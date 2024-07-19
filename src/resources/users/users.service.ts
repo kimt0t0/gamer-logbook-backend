@@ -41,7 +41,9 @@ export class UsersService {
     }
 
     async findAll(): Promise<User[]> {
-        return await this.usersRepository.find();
+        return await this.usersRepository.find({
+            relations: ['games', 'logbooks'],
+        });
     }
 
     async findOneById(id: UUID): Promise<User> {
@@ -131,9 +133,10 @@ export class UsersService {
             }
             // Check credentials
             const userCredentialsChecker = await this.usersRepository.findOne({
-                where: { id: decodedToken.id },
+                where: { id: id },
                 select: ['email', 'hash'],
             });
+            console.log(`Checking loaded email ${userCredentialsChecker.email} against do email ${email}`);
             if (userCredentialsChecker.email != email) {
                 throw new NotAcceptableException(`The given email ${email} does not correspond to user email in the database.`);
             }

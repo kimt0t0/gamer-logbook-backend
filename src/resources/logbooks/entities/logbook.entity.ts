@@ -14,10 +14,10 @@ export class Logbook {
     @Column({ type: 'jsonb', nullable: true })
     contents: any;
 
-    @ManyToOne(() => User, (user) => user.logbooks, { eager: false })
+    @ManyToOne(() => User, (user) => user.logbooks, { eager: false, orphanedRowAction: 'delete', onDelete: 'CASCADE' })
     owner: User;
 
-    @ManyToOne(() => Game, (game) => game.logbooks)
+    @ManyToOne(() => Game, (game) => game.logbooks, { orphanedRowAction: 'nullify', onDelete: 'SET NULL', nullable: true })
     game: Game;
 
     @BeforeInsert()

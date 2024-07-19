@@ -21,10 +21,10 @@ export class User {
     @Column({ default: Roles.CLASSIC })
     role: Roles;
 
-    @OneToMany(() => Logbook, (logbook) => logbook.owner, { eager: false, onDelete: 'CASCADE' })
+    @OneToMany(() => Logbook, (logbook) => logbook.owner, { eager: false, orphanedRowAction: 'nullify', onDelete: 'SET NULL' })
     logbooks: Logbook[];
 
-    @OneToMany(() => Game, (game) => game.owner, { eager: false })
+    @OneToMany(() => Game, (game) => game.owner, { orphanedRowAction: 'nullify', onDelete: 'SET NULL', eager: false })
     games: Game[];
 
     @BeforeInsert()

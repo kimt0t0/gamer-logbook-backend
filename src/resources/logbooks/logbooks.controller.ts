@@ -25,8 +25,7 @@ export class LogbooksController {
         return this.logbooksService.findAll();
     }
 
-    @UseGuards(AuthGuard, RolesGuard)
-    @Role(Roles.ADMIN)
+    @UseGuards(AuthGuard)
     @Get(':id')
     findOne(@Param('id') id: UUID) {
         return this.logbooksService.findOne(id);

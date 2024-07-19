@@ -49,7 +49,7 @@ export class LogbooksService {
     }
 
     async findAll(): Promise<Logbook[]> {
-        return await this.logbooksRepository.find({ relations: ['owner', 'game'] });
+        return await this.logbooksRepository.find({ relations: ['game'] });
     }
 
     async findOne(id: UUID): Promise<Logbook> {
@@ -80,7 +80,7 @@ export class LogbooksService {
             // Read logbook
             const logbook = await this.logbooksRepository.findOne({
                 where: { id },
-                relations: ['owner', 'game'],
+                relations: ['game'],
             });
             if (!logbook) {
                 throw new NotFoundException(`Logbook with id ${id} was not found.`);

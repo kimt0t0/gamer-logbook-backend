@@ -15,7 +15,7 @@ export class Game {
     @Column({ nullable: true, unique: true })
     imageUrl: string;
 
-    @ManyToOne(() => User, (user) => user.games, { eager: false })
+    @ManyToOne(() => User, (user) => user.games, { eager: false, onDelete: 'CASCADE' })
     owner: User;
 
     @OneToMany(() => Logbook, (logbook) => logbook.game, { eager: false })
