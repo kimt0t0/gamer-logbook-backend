@@ -36,7 +36,7 @@ export class UsersService {
             });
             return this.usersRepository.save(user);
         } catch (e) {
-            throw new BadRequestException(`User creation failed with code ${e.code}: ${e.message}.`);
+            throw new BadRequestException(`User creation failed: ${e.message}`);
         }
     }
 
@@ -70,7 +70,7 @@ export class UsersService {
                 select: ['id', 'username', 'role', 'games', 'logbooks'],
             });
         } catch (e) {
-            throw new Error(`Could not find user with id ${id} due to error with code ${e.code}: ${e.message}.`);
+            throw new Error(`Could not find user with id ${id}: ${e.message}`);
         }
     }
 
@@ -98,7 +98,7 @@ export class UsersService {
                 select: ['id', 'username', 'role', 'games', 'logbooks'],
             });
         } catch (e) {
-            throw new Error(`Could not find user with username ${username} due to error with code ${e.code}: ${e.message}.`);
+            throw new Error(`Could not find user with username ${username}: ${e.message}`);
         }
     }
 
@@ -127,7 +127,6 @@ export class UsersService {
                 where: { id: id },
                 select: ['email', 'hash'],
             });
-            console.log(`Checking loaded email ${userCredentialsChecker.email} against do email ${email}`);
             if (userCredentialsChecker.email != email) {
                 throw new NotAcceptableException(`The given email ${email} does not correspond to user email in the database.`);
             }
@@ -148,7 +147,7 @@ export class UsersService {
             });
             return this.findOneById(id);
         } catch (e) {
-            throw new Error(`Could not find user with id ${id} due to error with code ${e.code}: ${e.message}.`);
+            throw new Error(`Could not find user with id ${id}: ${e.message}`);
         }
     }
 
@@ -177,7 +176,7 @@ export class UsersService {
             await this.usersRepository.delete(id);
             return id;
         } catch (e) {
-            throw new Error(`User with id ${id} could not be deleted due to error with code ${e.code}: ${e.message}`);
+            throw new Error(`User with id ${id} could not be deleted: ${e.message}`);
         }
     }
 }

@@ -39,7 +39,8 @@ export class GamesService {
             owner,
             imageUrl,
         });
-        return this.gamesRepository.save(game);
+        const newGame = await this.gamesRepository.save(game);
+        return this.findOneById(newGame.id);
     }
 
     async findAll(): Promise<Game[]> {
@@ -47,10 +48,12 @@ export class GamesService {
     }
 
     async findOneById(id: UUID): Promise<Game> {
-        const game = await this.gamesRepository.findOne({
-            where: { id },
-            relations: ['owner', 'logbooks'],
-        });
+        const game = await this.gamesRepository
+            .createQueryBuilder('game')
+            .leftJoinAndSelect('game.owner', 'user')
+            .select(['game', 'user.id', 'user.username', 'user.role'])
+            .where('game.id = :id', { id })
+            .getOne();
         if (!game) {
             throw new NotFoundException(`Game with id ${id} was not found.`);
         }
@@ -58,10 +61,12 @@ export class GamesService {
     }
 
     async findOneByTitle(title: string): Promise<Game> {
-        const game = await this.gamesRepository.findOne({
-            where: { title },
-            relations: ['owner', 'logbooks'],
-        });
+        const game = await this.gamesRepository
+            .createQueryBuilder('game')
+            .leftJoinAndSelect('game.owner', 'user')
+            .select(['game', 'user.id', 'user.username', 'user.role'])
+            .where('game.title = :id', { title })
+            .getOne();
         if (!game) {
             throw new NotFoundException(`Game with title ${title} was not found.`);
         }
@@ -102,9 +107,10 @@ export class GamesService {
             }
             // (game itself)
             Object.assign(game, updateGameDto);
-            return this.gamesRepository.save(game);
+            await this.gamesRepository.save(game);
+            return this.findOneById(id);
         } catch (e) {
-            throw new Error(`Game with id ${id} could not be updated due to error with code ${e.code}: ${e.message}`);
+            throw new Error(`Game with id ${id} could not be updated: ${e.message}`);
         }
     }
 
@@ -132,7 +138,7 @@ export class GamesService {
             await this.gamesRepository.delete(id);
             return id;
         } catch (e) {
-            throw new Error(`Game with id ${id} could not be deleted due to error with code ${e.code}: ${e.message}`);
+            throw new Error(`Game with id ${id} could not be deleted : ${e.message}`);
         }
     }
 }

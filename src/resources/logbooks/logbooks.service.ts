@@ -94,7 +94,7 @@ export class LogbooksService {
             }
             return logbook;
         } catch (e) {
-            throw new Error(`Could not read logbook with id ${id} due to error with code ${e.code}: ${e.message}.`);
+            throw new Error(`Could not read logbook with id ${id}: ${e.message}`);
         }
     }
 

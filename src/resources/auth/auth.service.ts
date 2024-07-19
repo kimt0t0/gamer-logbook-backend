@@ -35,7 +35,7 @@ export class AuthService {
                 access_token: await this.jwtService.signAsync(payload),
             };
         } catch (e) {
-            throw new Error(`Could not login due to error with code ${e.code}: ${e.message}.`);
+            throw new Error(`Could not login: ${e.message}`);
         }
     }
 }
