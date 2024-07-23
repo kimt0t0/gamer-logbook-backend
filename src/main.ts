@@ -8,7 +8,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-    app.useStaticAssets(join(__dirname, '..', 'uploads'));
+    app.useStaticAssets(join(__dirname, '..', 'public', 'uploads'));
 
     app.use(
         helmet({
@@ -30,12 +30,13 @@ async function bootstrap() {
 
     app.enableCors({
         origin: process.env.FRONTEND_PATH,
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE, OPTIONS',
+        allowedHeaders: 'Content-Type, Accept, Authorization',
         credentials: true,
     });
 
     app.useGlobalPipes(new ValidationPipe());
 
-    await app.listen(3000);
+    await app.listen(Number(process.env.APP_PORT));
 }
 bootstrap();
