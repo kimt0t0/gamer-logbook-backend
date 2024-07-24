@@ -65,7 +65,7 @@ export class GamesService {
             .createQueryBuilder('game')
             .leftJoinAndSelect('game.owner', 'user')
             .select(['game', 'user.id', 'user.username', 'user.role'])
-            .where('game.title = :id', { title })
+            .where('game.title = :title', { title })
             .getOne();
         if (!game) {
             throw new NotFoundException(`Game with title ${title} was not found.`);
