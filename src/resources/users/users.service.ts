@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class UsersService {
         private usersRepository: Repository<User>,
     ) {}
 
-    async create(createUserDto: CreateUserDto): Promise<User> {
+    async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
         const { username, email, password, role } = createUserDto;
         if (role && role === Roles.ADMIN) {
             throw new NotAcceptableException(`You cannot create an admin account. If you need one please contact the developer.`);
@@ -34,7 +35,12 @@ export class UsersService {
                 hash,
                 role,
             });
-            return this.usersRepository.save(user);
+            await this.usersRepository.save(user);
+            return {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+            };
         } catch (e) {
             throw new BadRequestException(`User creation failed: ${e.message}`);
         }

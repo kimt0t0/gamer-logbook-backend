@@ -35,6 +35,12 @@ async function bootstrap() {
         credentials: true,
     });
 
+    app.use((req, res, next) => {
+        res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.header('Cross-Origin-Opener-Policy', 'cross-origin');
+        next();
+    });
+
     app.useGlobalPipes(new ValidationPipe());
 
     await app.listen(Number(process.env.APP_PORT));
