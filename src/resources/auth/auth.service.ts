@@ -32,7 +32,7 @@ export class AuthService {
             if (!isMatch) throw new UnauthorizedException(`Password does not match user's password in the database.`);
             const payload = { id: user.id, username: user.username, role: user.role };
             return {
-                access_token: await this.jwtService.signAsync(payload),
+                access_token: await this.jwtService.signAsync(payload, { secret: process.env.SECRET_TOKEN }),
             };
         } catch (e) {
             throw new Error(`Could not login: ${e.message}`);

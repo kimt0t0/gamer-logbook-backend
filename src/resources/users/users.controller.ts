@@ -33,7 +33,7 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard)
-    @Get(':id')
+    @Get('/username/:username')
     findOneByUsername(@Param('username') username: string) {
         return this.usersService.findOneByUsername(username);
     }
